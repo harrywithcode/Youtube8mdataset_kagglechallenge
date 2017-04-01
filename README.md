@@ -18,4 +18,5 @@ over  the  dataset.  The  extracted  features  are  further  compressed  by  PCA
 ## References <a name="references"></a>
 
 [1] Imagenet - http://image-net.org/
+
 [2] Youtube 8m dataset - https://arxiv.org/abs/1609.08675
