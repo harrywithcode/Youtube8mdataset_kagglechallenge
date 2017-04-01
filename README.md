@@ -1,4 +1,4 @@
-# Youtube8mdataset_kagglechallen
+# Kaggle Competetion-Youtube 8m Video Dataset
 
 ## Introduction  <a name="introduction"></a>
 We  are  looking  to  take  part  in  one  of  the  popular  competitions  hosted  in  Kaggle:  GoogleCloud  and  YouTube-8M  Video  Understanding  Challenge.  
