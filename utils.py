@@ -1,5 +1,4 @@
 class YouTube8mFeatureReader:
-    
     def __init__(self,
                  num_classes=NUM_CLASSES, 
                  feature_size=[RGB_FEAT_SIZE, AUDIO_FEAT_SIZE], 
