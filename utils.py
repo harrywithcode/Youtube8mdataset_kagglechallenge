@@ -1,3 +1,30 @@
+import os
+import csv
+import sys
+import cv2
+import random
+import base64
+import fnmatch
+import numpy as np
+import codecs, json
+import pandas as pd
+from PIL import Image
+import skimage.io as io
+from matplotlib import pyplot as plt
+
+import tensorflow as tf
+from tensorflow.python.platform import gfile
+from keras.utils import np_utils
+
+DATA_DIR = "/your/path/to/data/"
+NUM_CLASSES=4716
+GLOBAL_FEAT_NAMES=["vid", "labels", "labelName"]
+VID_LVL_FEAT_NAMES=["mean_rgb", "mean_audio"]
+FRM_LVL_FEAT_NAMES=["rgb", "audio", "numframes"]
+MAX_FRAMES=300
+RGB_FEAT_SIZE = 1024
+AUDIO_FEAT_SIZE = 128
+
 class YouTube8mFeatureReader:
     def __init__(self,
                  num_classes=NUM_CLASSES, 
