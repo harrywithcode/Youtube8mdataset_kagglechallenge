@@ -61,11 +61,11 @@ class YouTube8mFeatureReader:
         if self.sequence_data:
             decoded_features = tf.reshape(tf.cast(tf.decode_raw(features[self.feature_name[0]], tf.uint8), tf.float32),
                                           [-1, self.feature_size[0]])
-            video_matrix = Dequantize(decoded_features, max_quantized_value, min_quantized_value)
+            video_matrix = dequantize(decoded_features, max_quantized_value, min_quantized_value)
             
             decoded_features = tf.reshape(tf.cast(tf.decode_raw(features[self.feature_name[1]], tf.uint8), tf.float32),
                                           [-1, self.feature_size[1]])
-            audio_matrix = Dequantize(decoded_features, max_quantized_value, min_quantized_value)
+            audio_matrix = dequantize(decoded_features, max_quantized_value, min_quantized_value)
             
             num_frames = tf.minimum(tf.shape(decoded_features)[0], self.max_frames)
         else:
@@ -129,16 +129,7 @@ def tfrecord_reader(filename_queue, data_lvl):#, outpath):
             coord.join(threads)
         return recordlist
 
-def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
-    """
-        Dequantize the feature from the byte format to the float format.
-        Args:
-        feat_vector: the input 1-d vector.
-        max_quantized_value: the maximum of the quantized value.
-        min_quantized_value: the minimum of the quantized value.
-        Returns:
-        A float vector which has the same shape as feat_vector.
-    """
+def dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
     assert max_quantized_value >  min_quantized_value
     quantized_range = max_quantized_value - min_quantized_value
     scalar = quantized_range / 255.0
