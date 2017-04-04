@@ -1,35 +1,11 @@
-import os
-import csv
-import sys
-import cv2
-import random
-import base64
-import fnmatch
-import numpy as np
-import codecs, json
-import pandas as pd
-from PIL import Image
-import skimage.io as io
-from matplotlib import pyplot as plt
-
-import tensorflow as tf
-from tensorflow.python.platform import gfile
-from keras.preprocessing.image import ImageDataGenerator
-%matplotlib inline
-
-DATA_DIR = "/home/jasonlee/Documents/dmproject_kaggle/data/"
-NUM_CLASSES=4716
-VID_LVL_FEAT_NAMES=["mean_rgb", "mean_audio"]
-FRM_LVL_FEAT_NAMES=["rgb", "audio"]
-MAX_FRAMES=300
-RGB_FEAT_SIZE = 1024
-AUDIO_FEAT_SIZE = 128
-
-class YouTube8MtfrecordReader:
+class YouTube8mFeatureReader:
     
     def __init__(self,
-                 num_classes=NUM_CLASSES, feature_size=[RGB_FEAT_SIZE, AUDIO_FEAT_SIZE], 
-                 feature_name=FRM_LVL_FEAT_NAMES, max_frames=MAX_FRAMES, sequence_data=True):
+                 num_classes=NUM_CLASSES, 
+                 feature_size=[RGB_FEAT_SIZE, AUDIO_FEAT_SIZE], 
+                 feature_name=FRM_LVL_FEAT_NAMES, 
+                 max_frames=MAX_FRAMES, 
+                 sequence_data=True):
         self.num_classes = num_classes
         self.feature_size = feature_size
         self.feature_name = feature_name
@@ -40,10 +16,8 @@ class YouTube8MtfrecordReader:
                        filename_queue,
                        max_quantized_value=2,
                        min_quantized_value=-2):
-        
         reader = tf.TFRecordReader()
         _, serialized_example = reader.read(filename_queue)
-
         context_features, sequence_features = {"video_id": tf.FixedLenFeature([], tf.string),
                                                "labels": tf.VarLenFeature(tf.int64)}, None
         if self.sequence_data:
@@ -76,18 +50,17 @@ class YouTube8MtfrecordReader:
         # Pad or truncate to 'max_frames' frames.
         # video_matrix = resize_axis(video_matrix, 0, self.max_frames)
         return contexts["video_id"], video_matrix, audio_matrix, labels, num_frames
-
     
 def tfrecord_reader(filename_queue, data_lvl):#, outpath):
     labelcsv=pd.read_csv(DATA_DIR+"label_names.csv")
     alllabels = labelcsv["label_name"].values
     
     if data_lvl == 'frame':
-        print "Features: "+str(FRM_LVL_FEAT_NAMES)
-        reader = YouTube8MFrameFeatureReader()
+        print "%s level features: %s" & (data_lvl, str(FRM_LVL_FEAT_NAMES))
+        reader = YouTube8mFeatureReader()
     elif data_lvl == 'video':
-        print "Features: "+str(VID_LVL_FEAT_NAMES)
-        reader = YouTube8MFrameFeatureReader(feature_name=VID_LVL_FEAT_NAMES, sequence_data=False)
+        print "%s level features: %s" % (data_lvl, str(VID_LVL_FEAT_NAMES))
+        reader = YouTube8mFeatureReader(feature_name=VID_LVL_FEAT_NAMES, sequence_data=False)
     
     vals = reader.prepare_reader(filename_queue)
     with tf.Session() as sess:
@@ -107,37 +80,27 @@ def tfrecord_reader(filename_queue, data_lvl):#, outpath):
                 afeatureslist=np.round(afeatures,decimals=5).tolist()
                 labelName=alllabels[labels]
                 if data_lvl == 'frame':
-                    record={"vid": vid,
+                    record={GLOBAL_FEAT_NAMES[0]: vid,
                             FRM_LVL_FEAT_NAMES[0]: vfeatureslist,
                             FRM_LVL_FEAT_NAMES[1]: afeatureslist,
-                            "numframes": numframes,
-                            "labels": labels,
-                            "labelName": labelName,
+                            FRM_LVL_FEAT_NAMES[2]: numframes,
+                            GLOBAL_FEAT_NAMES[1]: labels,
+                            GLOBAL_FEAT_NAMES[2]: labelName,
                            }
                 elif data_lvl == 'video':
-                    record={"vid": vid,
+                    record={GLOBAL_FEAT_NAMES[0]: vid,
                             VID_LVL_FEAT_NAMES[0]: vfeatureslist,
                             VID_LVL_FEAT_NAMES[1]: afeatureslist,
-                            "labels": labels,
-                            "labelName": labelName,
+                            GLOBAL_FEAT_NAMES[1]: labels,
+                            GLOBAL_FEAT_NAMES[2]: labelName,
                            }
-                '''
-                if counter==1:
-                    f.write("{}\n".format(json.dumps(record)))
-                else:
-                    fa.write("{}\n".format(json.dumps(record)))
-                '''
                 recordlist.append(record)
                 
         except tf.errors.OutOfRangeError:
-            print('\nFinished extracting.')
+            print('Finished extracting from tfrecord data.')
         finally:
-            #json.dump(recordlist, f, separators=(',', ':'))
             coord.request_stop()
             coord.join(threads)
-            #f.close()
-            print "Loaded."
-            
         return recordlist
 
 def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
@@ -156,30 +119,52 @@ def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
     bias = (quantized_range / 512.0) + min_quantized_value
     return feat_vector * scalar + bias
 
-def data_generator(featurename, features, labels, batch_size):
-    print featurename
-    if featurename == 'rgb':
-        batch_features = np.zeros((batch_size, 1, RGB_FEAT_SIZE))
-        print batch_features.shape
-    elif featurename == 'audio':
-        batch_features = np.zeros((batch_size, 1, AUDIO_FEAT_SIZE))
-    batch_labels = np.zeros((batch_size,1))
+def get_data(data_path, 
+             data_lvl,
+             feature_type="rgb",
+             batch=32, 
+             preprocess=None, 
+             shuffle=True,
+             num_epochs=1):
+    files_pattern = "train*.tfrecord"
+    data_files = gfile.Glob(data_path+files_pattern)
+    filename_queue = tf.train.string_input_producer(data_files, num_epochs=num_epochs, shuffle=shuffle)
+    tfrecord_list = tfrecord_reader(filename_queue, data_lvl)
+    vid_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[0]] for i,_ in enumerate(tfrecord_list)])
+    labels_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[1]] for i,_ in enumerate(tfrecord_list)])
     
-    indexlist = list(range(len(features)))
-    for i in range(batch_size):
-        index= random.choice(indexlist)
-        print index
-        batch_features[i,:,:] = np.asarray(features[index])
-        batch_labels[i] = labels[index]
-        print batch_labels[i]
-        indexlist.remove(index)
+    if data_lvl=="video":
+        mean_rgb_train = np.array([tfrecord_list[i][VID_LVL_FEAT_NAMES[0]] for i,_ in enumerate(tfrecord_list)])
+        mean_audio_train = np.array([tfrecord_list[i][VID_LVL_FEAT_NAMES[1]] for i,_ in enumerate(tfrecord_list)])
+        if feature_type=="rgb":
+            X_train = mean_rgb_train
+        elif feature_type=="audio":
+            X_train = mean_audio_train
+    elif data_lvl=="frame":
+        rgb_train = np.array([tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i,_ in enumerate(tfrecord_list)])
+        audio_train = np.array([tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i,_ in enumerate(tfrecord_list)])
+        if feature_type=="rgb":
+            X_train = rgb_train
+        elif feature_type=="audio":
+            X_train = audio_train
+    
+    Y_train = to_multi_categorical(labels_train, NUM_CLASSES)
+    print "get_data done."
+    return X_train, Y_train
 
+def to_multi_categorical(labels, num_classes):
+    for i, label in enumerate(labels):
+        if i==0:
+            result = np.array([np.sum(np_utils.to_categorical(label, num_classes), axis=0)])
+        else:
+            result = np.concatenate((result, np.array([np.sum(np_utils.to_categorical(label, num_classes), axis=0)])),
+                                     axis=0)
+    return result
 
-def get_data(data_path, batch=64, preprocess=None, shuffle=True):
-    data_datagen = ImageDataGenerator(preprocessing_function=preprocess)
-    return data_datagen.flow_from_directory(data_path,
-            target_size=(IMAGE_SIZE, IMAGE_SIZE),
-            batch_size=batch,
-            shuffle=shuffle)
-            
-   
+if __name__ == '__main__':
+    # data level: "frame" and "video"
+    # feature type: "rgb" and "audio"
+    data_lvl = "video"
+    feature_type = "rgb"
+    X_train, Y_train = get_data(DATA_DIR, data_lvl, feature_type)
+    
