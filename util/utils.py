@@ -18,39 +18,6 @@ from globals import RGB_FEAT_SIZE, AUDIO_FEAT_SIZE, MAX_FRAMES, NUM_CLASSES, \
     FRAME_TRAIN_DIR, FRAME_VAL_DIR, FRAME_TEST_DIR, \
     EX_DATA_DIR
 
-def get_data(data_path,
-             data_lvl,
-             feature_type="rgb",
-             batch=32,
-             preprocess=None,
-             shuffle=True,
-             num_epochs=1):
-    files_pattern = "train*.tfrecord"
-    data_files = gfile.Glob(data_path + files_pattern)
-    filename_queue = tf.train.string_input_producer(data_files, num_epochs=num_epochs, shuffle=shuffle)
-    tfrecord_list = tfrecord_reader(filename_queue, data_lvl)
-    vid_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
-    labels_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
-
-    if data_lvl == "video":
-        mean_rgb_train = np.array([tfrecord_list[i][VID_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
-        mean_audio_train = np.array([tfrecord_list[i][VID_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
-        if feature_type == "rgb":
-            X_train = mean_rgb_train
-        elif feature_type == "audio":
-            X_train = mean_audio_train
-    elif data_lvl == "frame":
-        rgb_train = np.array([tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
-        audio_train = np.array([tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
-        if feature_type == "rgb":
-            X_train = rgb_train
-        elif feature_type == "audio":
-            X_train = audio_train
-
-    Y_train = to_multi_categorical(labels_train, NUM_CLASSES)
-    print "get_data done."
-    return X_train, Y_train
-
 def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
     assert max_quantized_value > min_quantized_value
     quantized_range = max_quantized_value - min_quantized_value
