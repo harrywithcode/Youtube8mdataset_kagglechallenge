@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
-from utils import Dequantize, to_multi_categorical
+from util.utils import Dequantize, to_multi_categorical
 from globals import RGB_FEAT_SIZE, AUDIO_FEAT_SIZE, MAX_FRAMES, NUM_CLASSES, \
     FRM_LVL_FEAT_NAMES, VID_LVL_FEAT_NAMES, GLOBAL_FEAT_NAMES, \
     VIDEO_TRAIN_DIR, VIDEO_VAL_DIR, VIDEO_TEST_DIR, \
