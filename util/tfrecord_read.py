@@ -124,13 +124,14 @@ def tfrecord_reader(filename_queue, data_lvl):  # , outpath):
 
 
 def get_data(data_path,
+             data_for,
              data_lvl,
              feature_type="rgb",
              batch=32,
              preprocess=None,
              shuffle=True,
              num_epochs=1):
-    files_pattern = "train*.tfrecord"
+    files_pattern = data_for+"*.tfrecord"
     data_files = gfile.Glob(data_path + files_pattern)
     filename_queue = tf.train.string_input_producer(data_files, num_epochs=num_epochs, shuffle=shuffle)
     tfrecord_list = tfrecord_reader(filename_queue, data_lvl)
@@ -161,5 +162,9 @@ if __name__ == '__main__':
     # data level: "frame" and "video"
     # feature type: "rgb" and "audio"
     data_lvl = "frame"
+    data_for = "train"
     feature_type = "rgb"
-    X_train, Y_train = get_data(EX_DATA_DIR, data_lvl, feature_type)
+    X_train, Y_train = get_data(EX_DATA_DIR, 
+                                data_for,
+                                data_lvl,
+                                feature_type)
