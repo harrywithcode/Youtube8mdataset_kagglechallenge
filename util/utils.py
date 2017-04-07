@@ -26,10 +26,5 @@ def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
     return feat_vector * scalar + bias
 
 def to_multi_categorical(labels, num_classes):
-    for i, label in enumerate(labels):
-        if i == 0:
-            result = np.array([np.sum(np_utils.to_categorical(label, num_classes), axis=0)])
-        else:
-            result = np.concatenate((result, np.array([np.sum(np_utils.to_categorical(label, num_classes), axis=0)])),
-                                    axis=0)
+    result = np.array([np.sum(np_utils.to_categorical(label, num_classes), axis=0) for label in labels])
     return result
