@@ -18,7 +18,7 @@ from globals import RGB_FEAT_SIZE, AUDIO_FEAT_SIZE, MAX_FRAMES, NUM_CLASSES, \
     FRAME_TRAIN_DIR, FRAME_VAL_DIR, FRAME_TEST_DIR, \
     EX_DATA_DIR
 
-class YouTube8mFeatureReader:
+class yt8mFeatureReader:
     def __init__(self,
                  num_classes=NUM_CLASSES,
                  feature_size=[RGB_FEAT_SIZE, AUDIO_FEAT_SIZE],
@@ -76,10 +76,10 @@ def tfrecord_reader(filename_queue, data_lvl):  # , outpath):
 
     if data_lvl == 'frame':
         print "%s level features: %s" & (data_lvl, str(FRM_LVL_FEAT_NAMES))
-        reader = YouTube8mFeatureReader()
+        reader = yt8mFeatureReader()
     elif data_lvl == 'video':
         print "%s level features: %s" % (data_lvl, str(VID_LVL_FEAT_NAMES))
-        reader = YouTube8mFeatureReader(feature_name=VID_LVL_FEAT_NAMES, sequence_data=False)
+        reader = yt8mFeatureReader(feature_name=VID_LVL_FEAT_NAMES, sequence_data=False)
 
     vals = reader.prepare_reader(filename_queue)
     with tf.Session() as sess:
