@@ -33,9 +33,9 @@ class yt8mNet_video:
 
     def load_model(self):
         model = Sequential()
-        model.add(Dense(2048, input_dim=self.feature_size, kernel_initializer='normal', activation='relu', name='fc1'))
+        model.add(Dense(4096, input_dim=self.feature_size, kernel_initializer='normal', activation='relu', name='fc1'))
         model.add(Dropout(0.2))
-        model.add(Dense(2048, kernel_initializer='normal', activation='relu', name='fc2'))
+        model.add(Dense(4096, kernel_initializer='normal', activation='relu', name='fc2'))
         model.add(Dropout(0.2))
         model.add(Dense(self.numclasses, activation='softmax', name='predictions'))
         model.load_weights(MODEL_WEIGHTS, by_name=True)
