@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
-from util.utils import Dequantize, to_multi_categorical
+from util.utils import Dequantize, to_multi_categorical, get_framediff
 from globals import RGB_FEAT_SIZE, AUDIO_FEAT_SIZE, MAX_FRAMES, NUM_CLASSES, \
     FRM_LVL_FEAT_NAMES, VID_LVL_FEAT_NAMES, GLOBAL_FEAT_NAMES, \
     VIDEO_TRAIN_DIR, VIDEO_VAL_DIR, VIDEO_TEST_DIR, \
@@ -146,7 +146,7 @@ def get_data(data_path,
     elif data_lvl == "frame":
         if feature_type == "rgb":
             feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
-            diff_feat = 
+            diff_feat = get_framediff(feat)
         elif feature_type == "audio":
             feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]    
     X = feat
