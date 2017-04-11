@@ -139,15 +139,15 @@ def get_data(data_path,
     labels_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
 
     if data_lvl == "video":
-        mean_rgb_train = np.array([tfrecord_list[i][VID_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
-        mean_audio_train = np.array([tfrecord_list[i][VID_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
+        mean_rgb_train = [tfrecord_list[i][VID_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
+        mean_audio_train = [tfrecord_list[i][VID_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
         if feature_type == "rgb":
             X_train = mean_rgb_train
         elif feature_type == "audio":
             X_train = mean_audio_train
     elif data_lvl == "frame":
-        rgb_train = np.array([tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
-        audio_train = np.array([tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
+        rgb_train = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
+        audio_train = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
         if feature_type == "rgb":
             X_train = rgb_train
         elif feature_type == "audio":
