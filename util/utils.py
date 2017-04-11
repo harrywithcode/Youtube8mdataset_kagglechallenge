@@ -28,3 +28,7 @@ def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
 def to_multi_categorical(labels, num_classes):
     result = np.array([np.sum(np_utils.to_categorical(label, num_classes), axis=0) for label in labels])
     return result
+
+def get_framediff(frame_features):
+    frmdiff = -np.diff(frame_features, axis=0)
+    return  list(frmdiff)
