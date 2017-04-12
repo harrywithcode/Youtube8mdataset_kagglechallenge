@@ -1,17 +1,8 @@
-import os
-import csv
-import sys
-import cv2
-import random
-import base64
-import fnmatch
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
-
 import tensorflow as tf
 from tensorflow.python.platform import gfile
-from util.utils import Dequantize, to_multi_categorical, get_framediff
+from utils import Dequantize, to_multi_categorical, get_framediff
 from globals import RGB_FEAT_SIZE, AUDIO_FEAT_SIZE, MAX_FRAMES, NUM_CLASSES, \
     FRM_LVL_FEAT_NAMES, VID_LVL_FEAT_NAMES, GLOBAL_FEAT_NAMES, \
     VIDEO_TRAIN_DIR, VIDEO_VAL_DIR, VIDEO_TEST_DIR, \
@@ -75,7 +66,7 @@ def tfrecord_reader(filename_queue, data_lvl):  # , outpath):
     alllabels = labelcsv["label_name"].values
 
     if data_lvl == 'frame':
-        print "%s level features: %s" & (data_lvl, str(FRM_LVL_FEAT_NAMES))
+        print "%s level features: %s" % (data_lvl, str(FRM_LVL_FEAT_NAMES))
         reader = yt8mFeatureReader()
     elif data_lvl == 'video':
         print "%s level features: %s" % (data_lvl, str(VID_LVL_FEAT_NAMES))
@@ -123,19 +114,18 @@ def tfrecord_reader(filename_queue, data_lvl):  # , outpath):
         return recordlist
 
 def get_data(data_path,
-             data_for,
+             data_usedfor,
              data_lvl,
              feature_type="rgb",
-             batch=32,
              preprocess=None,
              shuffle=True,
              num_epochs=1):
-    files_pattern = data_for+"*.tfrecord"
+    files_pattern = data_usedfor+"*.tfrecord"
     data_files = gfile.Glob(data_path + files_pattern)
     filename_queue = tf.train.string_input_producer(data_files, num_epochs=num_epochs, shuffle=shuffle)
     tfrecord_list = tfrecord_reader(filename_queue, data_lvl)
-    vid_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
-    labels_train = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
+    vids = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)])
+    labels = np.array([tfrecord_list[i][GLOBAL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)])
 
     if data_lvl == "video":
         if feature_type == "rgb":
@@ -145,14 +135,15 @@ def get_data(data_path,
     elif data_lvl == "frame":
         if feature_type == "rgb":
             feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
-            diff_feat = get_framediff(feat)
+            #feat = [np.concatenate((tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]],
+            #                        get_framediff(tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]])))
+            #        for i, _ in enumerate(tfrecord_list)]
         elif feature_type == "audio":
-            feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]    
+            feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
     X = feat
-    Y = to_multi_categorical(labels_train, NUM_CLASSES)
+    Y = to_multi_categorical(labels, NUM_CLASSES)
     print "get_data done."
     return X, Y
-
 
 if __name__ == '__main__':
     # data level: "frame" and "video"
@@ -160,7 +151,5 @@ if __name__ == '__main__':
     data_lvl = "frame"
     data_for = "train"
     feature_type = "rgb"
-    X_train, Y_train = get_data(EX_DATA_DIR, 
-                                data_for,
-                                data_lvl,
-                                feature_type)
+    X_train, Y_train = get_data(EX_DATA_DIR, data_for, data_lvl, feature_type)
+    print len(X_train)
