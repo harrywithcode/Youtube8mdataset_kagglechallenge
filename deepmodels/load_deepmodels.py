@@ -3,6 +3,8 @@ from keras.layers.recurrent import LSTM, GRU
 from keras.models import Model, Sequential
 from keras.optimizers import SGD
 from keras.callbacks import CSVLogger, ModelCheckpoint, ReduceLROnPlateau
+import sys
+sys.path.append('/path/to/utils')
 from tfrecord_read import get_data
 from globals import RGB_FEAT_SIZE, AUDIO_FEAT_SIZE, MAX_FRAMES, NUM_CLASSES, \
     FRM_LVL_FEAT_NAMES, VID_LVL_FEAT_NAMES, GLOBAL_FEAT_NAMES, MODEL_WEIGHTS, MAX_FRAMES, \
