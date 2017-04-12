@@ -1,7 +1,6 @@
 import numpy as np
 from keras.utils import np_utils
 
-
 def Dequantize(feat_vector, max_quantized_value=2, min_quantized_value=-2):
     assert max_quantized_value > min_quantized_value
     quantized_range = max_quantized_value - min_quantized_value
