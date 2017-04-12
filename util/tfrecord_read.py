@@ -122,7 +122,6 @@ def tfrecord_reader(filename_queue, data_lvl):  # , outpath):
             coord.join(threads)
         return recordlist
 
-
 def get_data(data_path,
              data_for,
              data_lvl,
