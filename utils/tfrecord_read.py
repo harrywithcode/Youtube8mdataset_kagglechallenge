@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 from utils import Dequantize, to_multi_categorical, get_framediff
@@ -129,18 +130,17 @@ def get_data(data_path,
 
     if data_lvl == "video":
         if feature_type == "rgb":
-            feat = [tfrecord_list[i][VID_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
+            X = [tfrecord_list[i][VID_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
         elif feature_type == "audio":
-            feat = [tfrecord_list[i][VID_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
+            X = [tfrecord_list[i][VID_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
     elif data_lvl == "frame":
         if feature_type == "rgb":
-            feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
-            #feat = [np.concatenate((tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]],
+            X = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]] for i, _ in enumerate(tfrecord_list)]
+            #X = [np.concatenate((tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]],
             #                        get_framediff(tfrecord_list[i][FRM_LVL_FEAT_NAMES[0]])))
             #        for i, _ in enumerate(tfrecord_list)]
         elif feature_type == "audio":
-            feat = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
-    X = feat
+            X = [tfrecord_list[i][FRM_LVL_FEAT_NAMES[1]] for i, _ in enumerate(tfrecord_list)]
     Y = to_multi_categorical(labels, NUM_CLASSES)
     print "get_data done."
     return X, Y
@@ -148,8 +148,7 @@ def get_data(data_path,
 if __name__ == '__main__':
     # data level: "frame" and "video"
     # feature type: "rgb" and "audio"
-    data_lvl = "frame"
+    data_lvl = "video"
     data_for = "train"
     feature_type = "rgb"
     X_train, Y_train = get_data(EX_DATA_DIR, data_for, data_lvl, feature_type)
-    print len(X_train)
